@@ -6,15 +6,15 @@ use crate::ray::Ray;
 
 fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
     let oc = *center - ray.origin;
-    let a = Vec3::dot(&ray.direction, &ray.direction);
-    let b = -2.0 * Vec3::dot(&ray.direction, &oc);
-    let c = Vec3::dot(&oc, &oc) - radius * radius;
+    let a = ray.direction.length_squared();
+    let h = Vec3::dot(&ray.direction, &oc);
+    let c = oc.length_squared() - radius * radius;
 
-    let discriminant = b * b - 4.0 * a * c;
+    let discriminant = h * h - a * c;
     if discriminant < 0.0 {
         -1.0
     } else {
-        (-b - discriminant.sqrt()) / (2.0 * a)
+        (h - discriminant.sqrt()) / a
     }
 }
 
