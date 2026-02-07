@@ -4,7 +4,23 @@ mod ray;
 use crate::vec3::Vec3;
 use crate::ray::Ray;
 
+fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> bool {
+    let oc = *center - ray.origin;
+    let a = Vec3::dot(&ray.direction, &ray.direction);
+    let b = -2.0 * Vec3::dot(&ray.direction, &oc);
+    let c = Vec3::dot(&oc, &oc) - radius * radius;
+
+    let discriminant = b * b - 4.0 * a * c;
+    discriminant >= 0.0
+}
+
+// ---------------------------------------------------------------------------
+
 fn ray_color(ray: &Ray) -> Vec3 {
+    if hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray) {
+        return Vec3::new(1.0, 0.0, 0.0);
+    }
+
     let unit_direction = ray.direction.normalized();
     let a = (unit_direction.y + 1.0) / 2.0;
 
