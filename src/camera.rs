@@ -86,9 +86,16 @@ impl Camera {
 
     // -----------------------------------------------------------------------
 
-    fn ray_color(&self, ray: &Ray, world: &Vec<Box<dyn Hittable>>) -> Vec3 {
+    fn ray_color(&mut self, ray: &Ray, world: &Vec<Box<dyn Hittable>>) -> Vec3 {
         match world.hit(ray, 0.0..=f64::INFINITY) {
-            Some(hit_record) => return (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)) / 2.0,
+            Some(hit_record) => {
+                let direction = Vec3::random_on_hemisphere(&mut self.rng, &hit_record.normal);
+                let next_ray = Ray {
+                    origin: hit_record.point,
+                    direction,
+                };
+                return self.ray_color(&next_ray, world) / 2.0;
+            }
             None => (),
         };
 

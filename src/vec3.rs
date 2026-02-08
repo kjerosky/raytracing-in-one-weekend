@@ -1,5 +1,7 @@
 use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
 
+use rand::{Rng, rngs::ThreadRng};
+
 use crate::interval::Interval;
 
 #[derive(Copy, Clone)]
@@ -114,8 +116,42 @@ impl Vec3 {
 
     // -----------------------------------------------------------------------
 
-    pub fn dot(a: &Vec3, b: &Vec3) -> f64 {
+    pub fn dot(a: &Self, b: &Self) -> f64 {
         a.x * b.x + a.y * b.y + a.z * b.z
+    }
+
+    // -----------------------------------------------------------------------
+
+    fn random(rng: &mut ThreadRng, min: f64, max: f64) -> Self {
+        Self {
+            x: rng.gen_range(min..max),
+            y: rng.gen_range(min..max),
+            z: rng.gen_range(min..max),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+
+    fn random_unit_vector(rng: &mut ThreadRng) -> Self {
+        loop {
+            let p = Self::random(rng, -1.0, 1.0);
+            let length_squared = p.length_squared();
+            if 1e-160 < length_squared && length_squared <= 1.0 {
+                return p / length_squared.sqrt();
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------------
+
+    pub fn random_on_hemisphere(rng: &mut ThreadRng, normal: &Self) -> Self {
+        let on_unit_sphere = Self::random_unit_vector(rng);
+        if Self::dot(&on_unit_sphere, normal) > 0.0 {
+            // In the same hemisphere as the normal
+            on_unit_sphere
+        } else {
+            -on_unit_sphere
+        }
     }
 
     // -----------------------------------------------------------------------
