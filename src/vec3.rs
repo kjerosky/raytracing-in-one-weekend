@@ -132,25 +132,13 @@ impl Vec3 {
 
     // -----------------------------------------------------------------------
 
-    fn random_unit_vector(rng: &mut ThreadRng) -> Self {
+    pub fn random_unit_vector(rng: &mut ThreadRng) -> Self {
         loop {
             let p = Self::random(rng, -1.0, 1.0);
             let length_squared = p.length_squared();
             if 1e-160 < length_squared && length_squared <= 1.0 {
                 return p / length_squared.sqrt();
             }
-        }
-    }
-
-    // -----------------------------------------------------------------------
-
-    pub fn random_on_hemisphere(rng: &mut ThreadRng, normal: &Self) -> Self {
-        let on_unit_sphere = Self::random_unit_vector(rng);
-        if Self::dot(&on_unit_sphere, normal) > 0.0 {
-            // In the same hemisphere as the normal
-            on_unit_sphere
-        } else {
-            -on_unit_sphere
         }
     }
 
