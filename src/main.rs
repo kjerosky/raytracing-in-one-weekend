@@ -5,29 +5,14 @@ mod sphere;
 
 use crate::vec3::Vec3;
 use crate::ray::Ray;
+use crate::hittable::Hittable;
+use crate::sphere::Sphere;
 
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
-    let oc = *center - ray.origin;
-    let a = ray.direction.length_squared();
-    let h = Vec3::dot(&ray.direction, &oc);
-    let c = oc.length_squared() - radius * radius;
-
-    let discriminant = h * h - a * c;
-    if discriminant < 0.0 {
-        -1.0
-    } else {
-        (h - discriminant.sqrt()) / a
-    }
-}
-
-// ---------------------------------------------------------------------------
-
-fn ray_color(ray: &Ray) -> Vec3 {
-    let t = hit_sphere(&Vec3::new(0.0, 0.0, -1.0), 0.5, ray);
-    if t > 0.0 {
-        let normal = (ray.at(t) - Vec3::new(0.0, 0.0, -1.0)).normalized();
-        return Vec3::new(normal.x + 1.0, normal.y + 1.0, normal.z + 1.0) / 2.0;
-    }
+fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable>>) -> Vec3 {
+    match world.hit(ray, 0.0, f64::INFINITY) {
+        Some(hit_record) => return (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)) / 2.0,
+        None => (),
+    };
 
     let unit_direction = ray.direction.normalized();
     let a = (unit_direction.y + 1.0) / 2.0;
@@ -44,6 +29,14 @@ fn main() {
 
     let image_height = (image_width as f64 / ideal_aspect_ratio) as i32;
     let image_height = i32::max(image_height, 1);
+
+    let mut world: Vec<Box<dyn Hittable>> = Vec::new();
+    world.push(Box::new(
+        Sphere::new(Vec3::new(0.0, 0.0, -1.0), 0.5))
+    );
+    world.push(Box::new(
+        Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0))
+    );
 
     let focal_length = 1.0;
     let viewport_height = 2.0;
@@ -73,7 +66,7 @@ fn main() {
                 direction: ray_direction,
             };
 
-            let color = ray_color(&ray);
+            let color = ray_color(&ray, &world);
 
             color.println();
         }
