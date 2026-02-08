@@ -162,11 +162,25 @@ impl Vec3 {
 
     // -----------------------------------------------------------------------
 
+    fn linear_to_gamma(&self, linear_component: f64) -> f64 {
+        if linear_component > 0.0 {
+            linear_component.sqrt()
+        } else {
+            0.0
+        }
+    }
+
+    // -----------------------------------------------------------------------
+
     pub fn println(&self) {
+        let r = self.linear_to_gamma(self.x);
+        let g = self.linear_to_gamma(self.y);
+        let b = self.linear_to_gamma(self.z);
+
         let intensity_range = 0.000..=0.999;
-        let x = (256.0 * intensity_range.clamp(&self.x)) as u8;
-        let y = (256.0 * intensity_range.clamp(&self.y)) as u8;
-        let z = (256.0 * intensity_range.clamp(&self.z)) as u8;
+        let x = (256.0 * intensity_range.clamp(&r)) as u8;
+        let y = (256.0 * intensity_range.clamp(&g)) as u8;
+        let z = (256.0 * intensity_range.clamp(&b)) as u8;
 
         println!("{x} {y} {z}");
     }

@@ -100,7 +100,7 @@ impl Camera {
                     origin: hit_record.point,
                     direction,
                 };
-                return self.ray_color(&bounced_ray, ray_bounces_allowed - 1, world) / 2.0;
+                return self.ray_color(&bounced_ray, ray_bounces_allowed - 1, world) * 0.5;
             }
             None => (),
         };
