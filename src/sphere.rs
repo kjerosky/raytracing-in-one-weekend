@@ -5,6 +5,8 @@ pub struct Sphere {
     radius: f64,
 }
 
+// ---------------------------------------------------------------------------
+
 impl Sphere {
     pub fn new(center: Vec3, radius: f64) -> Self {
         Self {
@@ -13,6 +15,8 @@ impl Sphere {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &crate::ray::Ray, ray_t_min: f64, ray_t_max: f64) -> Option<HitRecord> {
@@ -39,12 +43,13 @@ impl Hittable for Sphere {
 
         let t = root;
         let point = ray.at(t);
-        let normal = (point - self.center) / self.radius;
-        let hit_record = HitRecord {
+        let outward_normal = (point - self.center) / self.radius;
+        let hit_record = HitRecord::new(
             point,
-            normal,
             t,
-        };
+            ray,
+            outward_normal
+        );
         Some(hit_record)
     }
 }
