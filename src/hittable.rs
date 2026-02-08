@@ -29,3 +29,24 @@ impl HitRecord {
 pub trait Hittable {
     fn hit(&self, ray: &Ray, ray_t_min: f64, ray_t_max: f64) -> Option<HitRecord>;
 }
+
+// ---------------------------------------------------------------------------
+
+impl Hittable for Vec<Box<dyn Hittable>> {
+    fn hit(&self, ray: &Ray, ray_t_min: f64, ray_t_max: f64) -> Option<HitRecord> {
+        let mut result = None;
+        let mut closest_t_so_far = ray_t_max;
+
+        for object in self {
+            match object.hit(ray, ray_t_min, closest_t_so_far) {
+                Some(hit_record) => {
+                    closest_t_so_far = hit_record.t;
+                    result = Some(hit_record);
+                },
+                None => (),
+            };
+        }
+
+        return result;
+    }
+}
