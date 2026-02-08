@@ -2,6 +2,7 @@ mod vec3;
 mod ray;
 mod hittable;
 mod sphere;
+mod interval;
 
 use crate::vec3::Vec3;
 use crate::ray::Ray;
@@ -9,7 +10,7 @@ use crate::hittable::Hittable;
 use crate::sphere::Sphere;
 
 fn ray_color(ray: &Ray, world: &Vec<Box<dyn Hittable>>) -> Vec3 {
-    match world.hit(ray, 0.0, f64::INFINITY) {
+    match world.hit(ray, 0.0..=f64::INFINITY) {
         Some(hit_record) => return (hit_record.normal + Vec3::new(1.0, 1.0, 1.0)) / 2.0,
         None => (),
     };
