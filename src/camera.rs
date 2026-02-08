@@ -6,6 +6,7 @@ pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: i32,
     pub samples_per_pixel: i32,
+    pub max_ray_bounces_allowed: i32,
 
     image_height: i32,
     pixel_samples_scale: f64,
@@ -19,11 +20,12 @@ pub struct Camera {
 // ---------------------------------------------------------------------------
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32, max_ray_bounces_allowed: i32) -> Self {
         Self {
             aspect_ratio,
             image_width,
             samples_per_pixel,
+            max_ray_bounces_allowed,
 
             image_height: 0,
             pixel_samples_scale: 0.0,
@@ -50,7 +52,7 @@ impl Camera {
                 let mut pixel_color = Vec3::new_zero();
                 for _sample in 0..self.samples_per_pixel {
                     let ray = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&ray, world);
+                    pixel_color += self.ray_color(&ray, self.max_ray_bounces_allowed, world);
                 }
 
                 pixel_color *= self.pixel_samples_scale;
@@ -86,15 +88,19 @@ impl Camera {
 
     // -----------------------------------------------------------------------
 
-    fn ray_color(&mut self, ray: &Ray, world: &Vec<Box<dyn Hittable>>) -> Vec3 {
+    fn ray_color(&mut self, ray: &Ray, ray_bounces_allowed: i32, world: &Vec<Box<dyn Hittable>>) -> Vec3 {
+        if ray_bounces_allowed <= 0 {
+            return Vec3::new_zero();
+        }
+
         match world.hit(ray, 0.0..=f64::INFINITY) {
             Some(hit_record) => {
                 let direction = Vec3::random_on_hemisphere(&mut self.rng, &hit_record.normal);
-                let next_ray = Ray {
+                let bounced_ray = Ray {
                     origin: hit_record.point,
                     direction,
                 };
-                return self.ray_color(&next_ray, world) / 2.0;
+                return self.ray_color(&bounced_ray, ray_bounces_allowed - 1, world) / 2.0;
             }
             None => (),
         };
