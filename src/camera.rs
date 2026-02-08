@@ -93,7 +93,7 @@ impl Camera {
             return Vec3::new_zero();
         }
 
-        match world.hit(ray, 0.0..=f64::INFINITY) {
+        match world.hit(ray, 0.001..=f64::INFINITY) {
             Some(hit_record) => {
                 let direction = Vec3::random_on_hemisphere(&mut self.rng, &hit_record.normal);
                 let bounced_ray = Ray {
