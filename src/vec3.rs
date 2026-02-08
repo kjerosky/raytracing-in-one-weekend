@@ -1,4 +1,6 @@
-use std::ops::{Add, Div, Mul, Neg, Sub};
+use std::ops::{Add, AddAssign, Div, Mul, MulAssign, Neg, Sub};
+
+use crate::interval::Interval;
 
 #[derive(Copy, Clone)]
 pub struct Vec3 {
@@ -61,6 +63,26 @@ impl Div<f64> for Vec3 {
 
 // ---------------------------------------------------------------------------
 
+impl AddAssign for Vec3 {
+    fn add_assign(&mut self, rhs: Self) {
+        self.x += rhs.x;
+        self.y += rhs.y;
+        self.z += rhs.z;
+    }
+}
+
+// ---------------------------------------------------------------------------
+
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, rhs: f64) {
+        self.x *= rhs;
+        self.y *= rhs;
+        self.z *= rhs;
+    }
+}
+
+// ---------------------------------------------------------------------------
+
 impl Neg for Vec3 {
     type Output = Vec3;
 
@@ -117,9 +139,10 @@ impl Vec3 {
     // -----------------------------------------------------------------------
 
     pub fn println(&self) {
-        let x = (255.999 * self.x) as u8;
-        let y = (255.999 * self.y) as u8;
-        let z = (255.999 * self.z) as u8;
+        let intensity_range = 0.000..=0.999;
+        let x = (256.0 * intensity_range.clamp(&self.x)) as u8;
+        let y = (256.0 * intensity_range.clamp(&self.y)) as u8;
+        let z = (256.0 * intensity_range.clamp(&self.z)) as u8;
 
         println!("{x} {y} {z}");
     }

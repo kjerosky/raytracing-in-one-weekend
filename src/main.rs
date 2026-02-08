@@ -19,6 +19,6 @@ fn main() {
         Sphere::new(Vec3::new(0.0, -100.5, -1.0), 100.0)
     ));
 
-    let mut camera = Camera::new(16.0 / 9.0, 400);
+    let mut camera = Camera::new(16.0 / 9.0, 400, 100);
     camera.render(&world);
 }

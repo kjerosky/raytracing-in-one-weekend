@@ -1,10 +1,15 @@
+use rand::{Rng, rngs::ThreadRng};
+
 use crate::{hittable::Hittable, ray::Ray, vec3::Vec3};
 
 pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: i32,
+    pub samples_per_pixel: i32,
 
     image_height: i32,
+    pixel_samples_scale: f64,
+    rng: ThreadRng,
     center: Vec3,
     pixel_00_location: Vec3,
     pixel_delta_u: Vec3,
@@ -14,12 +19,15 @@ pub struct Camera {
 // ---------------------------------------------------------------------------
 
 impl Camera {
-    pub fn new(aspect_ratio: f64, image_width: i32) -> Self {
+    pub fn new(aspect_ratio: f64, image_width: i32, samples_per_pixel: i32) -> Self {
         Self {
             aspect_ratio,
             image_width,
+            samples_per_pixel,
 
             image_height: 0,
+            pixel_samples_scale: 0.0,
+            rng: rand::thread_rng(),
             center: Vec3::new_zero(),
             pixel_00_location: Vec3::new_zero(),
             pixel_delta_u: Vec3::new_zero(),
@@ -39,16 +47,14 @@ impl Camera {
         for j in 0..self.image_height {
             eprintln!("Scanlines remaining: {}", self.image_height - j);
             for i in 0..self.image_width {
-                let pixel_center = self.pixel_00_location + (self.pixel_delta_u * i as f64) + (self.pixel_delta_v * j as f64);
-                let ray_direction = pixel_center - self.center;
-                let ray = Ray {
-                    origin: self.center,
-                    direction: ray_direction,
-                };
+                let mut pixel_color = Vec3::new_zero();
+                for _sample in 0..self.samples_per_pixel {
+                    let ray = self.get_ray(i, j);
+                    pixel_color += self.ray_color(&ray, world);
+                }
 
-                let color = self.ray_color(&ray, &world);
-
-                color.println();
+                pixel_color *= self.pixel_samples_scale;
+                pixel_color.println();
             }
         }
         eprintln!("Done!");
@@ -59,6 +65,8 @@ impl Camera {
     fn initialize(&mut self) {
         self.image_height = (self.image_width as f64 / self.aspect_ratio) as i32;
         self.image_height = i32::max(1, self.image_height);
+
+        self.pixel_samples_scale = 1.0 / self.samples_per_pixel as f64;
 
         self.center = Vec3::new_zero();
 
@@ -89,5 +97,33 @@ impl Camera {
 
         // Linear interpolation
         Vec3::new(1.0, 1.0, 1.0) * (1.0 - a) + Vec3::new(0.5, 0.7, 1.0) * a
+    }
+
+    // -----------------------------------------------------------------------
+
+    fn get_ray(&mut self, pixel_x: i32, pixel_y: i32) -> Ray {
+        let offset = self.sample_square();
+        let pixel_sample = self.pixel_00_location
+            + self.pixel_delta_u * (pixel_x as f64 + offset.x)
+            + self.pixel_delta_v * (pixel_y as f64 + offset.y);
+
+        let origin = self.center;
+        let direction = pixel_sample - origin;
+
+        Ray {
+            origin,
+            direction,
+        }
+    }
+
+    // -----------------------------------------------------------------------
+
+    fn sample_square(&mut self) -> Vec3 {
+        // Return the vector to a random point in the [-0.5, -0.5]-[+0.5, +0.5] unit square.
+        Vec3::new(
+            self.rng.gen_range(-0.5..=0.5),
+            self.rng.gen_range(-0.5..=0.5),
+            0.0
+        )
     }
 }
