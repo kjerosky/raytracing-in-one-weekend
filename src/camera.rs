@@ -95,12 +95,18 @@ impl Camera {
 
         match world.hit(ray, 0.001..=f64::INFINITY) {
             Some(hit_record) => {
-                let direction = hit_record.normal + Vec3::random_unit_vector(&mut self.rng);
-                let bounced_ray = Ray {
-                    origin: hit_record.point,
-                    direction,
+                match hit_record.material.scatter(ray, &hit_record, &mut self.rng) {
+                    Some(material_hit) => {
+                        let attenuation = material_hit.attenuation;
+                        let color = self.ray_color(&material_hit.scattered_ray, ray_bounces_allowed - 1, world);
+                        return Vec3::new(
+                            attenuation.x * color.x,
+                            attenuation.y * color.y,
+                            attenuation.z * color.z,
+                        );
+                    },
+                    None => return Vec3::new_zero(),
                 };
-                return self.ray_color(&bounced_ray, ray_bounces_allowed - 1, world) * 0.5;
             }
             None => (),
         };

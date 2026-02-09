@@ -1,19 +1,21 @@
-use std::ops::RangeInclusive;
+use std::{ops::RangeInclusive, rc::Rc};
 
-use crate::{hittable::{HitRecord, Hittable}, interval::Interval, vec3::Vec3};
+use crate::{hittable::{HitRecord, Hittable}, interval::Interval, material::Material, vec3::Vec3};
 
 pub struct Sphere {
     center: Vec3,
     radius: f64,
+    material: Rc<dyn Material>,
 }
 
 // ---------------------------------------------------------------------------
 
 impl Sphere {
-    pub fn new(center: Vec3, radius: f64) -> Self {
+    pub fn new(center: Vec3, radius: f64, material: Rc<dyn Material>) -> Self {
         Self {
             center,
             radius: radius.max(0.0),
+            material,
         }
     }
 }
@@ -50,7 +52,8 @@ impl Hittable for Sphere {
             point,
             t,
             ray,
-            outward_normal
+            outward_normal,
+            Rc::clone(&self.material)
         );
         Some(hit_record)
     }
