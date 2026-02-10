@@ -47,13 +47,15 @@ impl Material for Lambertian {
 
 pub struct Metal {
     pub albedo: Vec3,
+    pub fuzz: f64,
 }
 
 // ---------------------------------------------------------------------------
 
 impl Material for Metal {
-    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord, _rng: &mut ThreadRng) -> Option<MaterialHit> {
-        let reflected_direction = Vec3::reflect(&ray_in.direction, &hit_record.normal);
+    fn scatter(&self, ray_in: &Ray, hit_record: &HitRecord, rng: &mut ThreadRng) -> Option<MaterialHit> {
+        let mut reflected_direction = Vec3::reflect(&ray_in.direction, &hit_record.normal);
+        reflected_direction = reflected_direction.normalized() + Vec3::random_unit_vector(rng) * self.fuzz;
 
         let attenuation = self.albedo;
         let scattered_ray = Ray {
@@ -61,9 +63,13 @@ impl Material for Metal {
             direction: reflected_direction,
         };
 
-        Some(MaterialHit {
-            attenuation,
-            scattered_ray,
-        })
+        if Vec3::dot(&scattered_ray.direction, &hit_record.normal) > 0.0 {
+            Some(MaterialHit {
+                attenuation,
+                scattered_ray,
+            })
+        } else {
+            None
+        }
     }
 }
